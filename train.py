@@ -14,17 +14,16 @@ from utils import weightsInit
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--optimizer', type=str, default='Adam', help='optimizer')
-parser.add_argument('--lr', type=float, default='0.001', help='learning rate')
+parser.add_argument('--lr', type=str, default='0.001', help='learning rate')
 parser.add_argument('--batchSize', type=int, default=64, help='batch size')
 parser.add_argument('--latentSize', type=int, default=512, help='batch size')
-parser.add_argument('--workers', type=int, help='number of data loading workers',
-    default=6)
+parser.add_argument('--beta', type=int, default=5, help='the beta (hyper)parameter')
 parser.add_argument('--nfE', type=int, default=64)
 parser.add_argument('--nfD', type=int, default=512)
 parser.add_argument('--resBlocks', type=str, default='5',
     help='number of residual blocks in both encoder and decoder')
-parser.add_argument('--epochs', type=int, default=10,
-    help='number of complete cycles over the data')
+parser.add_argument('--epochs', type=int, default=10, help='number of cycles over the data')
+parser.add_argument('--workers', type=int, help='number of data loading workers', default=6)
 parser.add_argument('--disableCuda', action='store_true', help='disables cuda')
 parser.add_argument('--outDir', type=str, default='output',
     help='folder to output images and model checkpoints')
@@ -91,7 +90,7 @@ for epoch in range(opt.epochs):
         output = D(output)
 
         # Evaluate losses.(KL divergence and Reconstruction loss)
-        klLoss = R.klDivergence()
+        klLoss = opt.beta * R.klDivergence()
         reconLoss = reconstructionLoss(output, batch.type(Tensor)) / batch.shape[0]
 
         reconLoss.backward(retain_graph=True)
