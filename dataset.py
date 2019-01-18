@@ -10,7 +10,6 @@ import torchvision.utils as vutils
 import matplotlib.pyplot as plt
 
 class CelebA(Dataset):
-
     def __init__(self, imgDirectory):
         self.imgPaths = []
         for img in os.listdir(imgDirectory):

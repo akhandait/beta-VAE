@@ -21,7 +21,7 @@ parser.add_argument('--workers', type=int, help='number of data loading workers'
     default=6)
 parser.add_argument('--nfE', type=int, default=64)
 parser.add_argument('--nfD', type=int, default=512)
-parser.add_argument('--resBlocks', type=int, default=5,
+parser.add_argument('--resBlocks', type=str, default='5',
     help='number of residual blocks in both encoder and decoder')
 parser.add_argument('--epochs', type=int, default=10,
     help='number of complete cycles over the data')
@@ -50,9 +50,9 @@ device = torch.device("cuda:0" if useCuda else "cpu")
 Tensor = torch.cuda.FloatTensor if useCuda else torch.Tensor
 
 # Networks.
-E = Encoder(latentSize=opt.latentSize, nfE=opt.nfE, resBlocks=opt.resBlocks).to(device)
+E = Encoder(latentSize=opt.latentSize, nfE=opt.nfE, resBlocks=int(opt.resBlocks)).to(device)
 R = Reparametrization(latentSize=opt.latentSize).to(device)
-D = Decoder(latentSize=opt.latentSize, nfD=opt.nfD, resBlocks=opt.resBlocks).to(device)
+D = Decoder(latentSize=opt.latentSize, nfD=opt.nfD, resBlocks=int(opt.resBlocks)).to(device)
 
 # Initialize the weights.
 E.apply(weightsInit)
@@ -115,15 +115,19 @@ for epoch in range(opt.epochs):
 
             samplesPriorList.append(torchvision.utils.make_grid(samples, padding=2,
                 normalize=True))
-            torchvision.utils.save_image(samples, opt.outDir + '/samples/' + 'sample_' +
-                str(epoch) + '_' + str(i) + '.png', normalize=True)
+            # torchvision.utils.save_image(samples, opt.outDir + '/samples/' + 'sample_' +
+            #     str(epoch) + '_' + str(i) + '.png', normalize=True)
 
             # Save the lists.
-            pickle_out = open(opt.outDir + '/lists.pickle', 'wb')
-            pickle.dump([klLossList, reconLossList, samplesPriorList], pickle_out)
+            pickle_out = open(opt.outDir + '/lists' + opt.resBlocks + '.pickle', 'wb')
+            pickle.dump([klLossList, reconLossList, samplesPriorList, opt], pickle_out)
             pickle_out.close()
 
     # Checkpoints.
-    torch.save(E.state_dict(), opt.outDir + '/E_epoch' + str(epoch) + '.pth')
-    torch.save(D.state_dict(), opt.outDir + '/D_epoch' + str(epoch) + '.pth')
+    # torch.save(E.state_dict(), opt.outDir + 'weights/E_epoch' + str(epoch) + '.pth')
+    # torch.save(D.state_dict(), opt.outDir + 'weights/D_epoch' + str(epoch) + '.pth')
 
+# Save the lists.
+pickle_out = open(opt.outDir + '/lists' + opt.resBlocks + '.pickle', 'wb')
+pickle.dump([klLossList, reconLossList, samplesPriorList, opt], pickle_out)
+pickle_out.close()
